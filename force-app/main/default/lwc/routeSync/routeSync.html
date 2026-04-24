@@ -1,0 +1,950 @@
+<!-- routeSync.html - WITH PROFILE PICTURE DELETE -->
+<template>
+    <div class="routesync-container">
+        
+        <!-- Loading Spinner -->
+        <template if:true={isLoading}>
+            <div class="loading-overlay">
+                <lightning-spinner alternative-text="Loading..." size="medium"></lightning-spinner>
+            </div>
+        </template>
+
+        <!-- LOGIN SCREEN -->
+        <template if:true={isLoginScreen}>
+            <div class="auth-container">
+                <div class="auth-background"></div>
+                
+                <div class="auth-content">
+                    <div class="logo-container">
+                        <div class="logo-icon">
+                            <span class="logo-text">RouteSync</span>
+                            <span class="logo-subtitle">Smart Ride Sharing</span>
+                        </div>
+                    </div>
+                    
+                    <div class="auth-form">
+                        <h2 class="form-title">Welcome Back</h2>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <lightning-input 
+                                type="email" 
+                                value={loginForm.email}
+                                data-field="email"
+                                onchange={handleLoginInputChange}
+                                class="form-input"
+                                placeholder="john@example.com">
+                            </lightning-input>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <lightning-input 
+                                type="password" 
+                                value={loginForm.password}
+                                data-field="password"
+                                onchange={handleLoginInputChange}
+                                class="form-input"
+                                placeholder="Enter password">
+                            </lightning-input>
+                        </div>
+                        
+                        <lightning-button 
+                            label="Sign In" 
+                            onclick={handleLogin}
+                            class="btn-primary"
+                            disabled={isLoading}>
+                        </lightning-button>
+                        
+                        <div class="auth-link">
+                            Don't have an account? 
+                            <a href="#" onclick={goToRegister}> Sign Up</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <!-- REGISTER SCREEN -->
+        <template if:true={isRegisterScreen}>
+            <div class="auth-container">
+                <div class="auth-background"></div>
+                <div class="auth-content">
+                    <div class="logo-container">
+                        <div class="logo-icon">
+                            <span class="logo-text">RouteSync</span>
+                            <span class="logo-subtitle">Smart Ride Sharing</span>
+                        </div>
+                    </div>
+                    <div class="auth-form register-form">
+                        <h2 class="form-title">Create Account</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label required">Full Name</label>
+                                <lightning-input type="text" value={registerForm.name} data-field="name"
+                                    onchange={handleRegisterInputChange} class="form-input" placeholder="John Doe" required>
+                                </lightning-input>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label required">Email</label>
+                                <lightning-input type="email" value={registerForm.email} data-field="email"
+                                    onchange={handleRegisterInputChange} class="form-input" placeholder="john@example.com"
+                                    required>
+                                </lightning-input>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label required">Phone</label>
+                                <lightning-input type="tel" value={registerForm.phone} data-field="phone"
+                                    onchange={handleRegisterInputChange} class="form-input" placeholder="+91 9876543210"
+                                    required>
+                                </lightning-input>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label required">Password</label>
+                                <lightning-input type="password" value={registerForm.password} data-field="password"
+                                    onchange={handleRegisterInputChange} class="form-input" placeholder="Create password"
+                                    required>
+                                </lightning-input>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Date of Birth</label>
+                                <lightning-input type="date" value={registerForm.dateOfBirth} data-field="dateOfBirth"
+                                    onchange={handleRegisterInputChange} class="form-input">
+                                </lightning-input>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Gender</label>
+                                <lightning-combobox value={registerForm.gender} data-field="gender"
+                                    onchange={handleRegisterInputChange} options={genderOptions} class="form-input"
+                                    placeholder="Select gender">
+                                </lightning-combobox>
+                            </div>
+                        </div>
+                        <lightning-button label="Create Account" onclick={handleRegister} class="btn-primary"
+                            disabled={isLoading}>
+                        </lightning-button>
+                        <div class="auth-link">
+                            Already have an account?
+                            <a href="#" onclick={goToLogin}> Sign In</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <!-- DASHBOARD SCREEN -->
+        <template if:true={isDashboardScreen}>
+            <div class="dashboard-container">
+                
+                <div class="dashboard-header">
+                    <div class="header-content">
+                        <div class="app-logo">
+                            <span class="logo-text">RouteSync</span>
+                        </div>
+                        <div class="user-info">
+                            <span class="user-name">Hi, {currentUser.Name}</span>
+                            <lightning-button-menu alternative-text="User menu" icon-name="utility:user">
+                                <lightning-menu-item label="Profile" onclick={handleTabClick} data-tab="profile"></lightning-menu-item>
+                                <lightning-menu-item label="Logout" onclick={handleLogout}></lightning-menu-item>
+                            </lightning-button-menu>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nav-tabs">
+                    <div class={isSearchActive} onclick={handleTabClick} data-tab="search">
+                        <span class="nav-icon">🔍</span>
+                        <span class="nav-label">Search</span>
+                    </div>
+                    <div class={isPublishActive} onclick={handleTabClick} data-tab="publish">
+                        <span class="nav-icon">➕</span>
+                        <span class="nav-label">Publish</span>
+                    </div>
+                    <div class={isRidesActive} onclick={handleTabClick} data-tab="rides">
+                        <span class="nav-icon">🚗</span>
+                        <span class="nav-label">Your Rides</span>
+                    </div>
+                    <div class={isInboxActive} onclick={handleTabClick} data-tab="inbox">
+                        <span class="nav-icon">💬</span>
+                        <span class="nav-label">Inbox</span>
+                    </div>
+                    <div class={isProfileActive} onclick={handleTabClick} data-tab="profile">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-label">Profile</span>
+                    </div>
+                </div>
+
+                <div class="content-area">
+                    
+                    <!-- SEARCH TAB -->
+                    <template if:true={showSearchTab}>
+                        <div class="search-content">
+                            <div class="search-header">
+                                <h2>Where to?</h2>
+                                <p>Find rides that match your travel plans</p>
+                            </div>
+                            
+                            <div class="search-form">
+                                <div class="location-inputs">
+                                    <!-- FROM LOCATION WITH SUGGESTIONS -->
+                                    <div class="form-group location-autocomplete">
+                                        <label class="form-label">From</label>
+                                        <lightning-input 
+                                            type="text" 
+                                            value={searchForm.from}
+                                            data-field="from"
+                                            onchange={handleSearchInputChange}
+                                            onfocus={handleSearchFromFocus}
+                                            onblur={handleSearchFromBlur}
+                                            placeholder="Departure location"
+                                            class="location-input">
+                                        </lightning-input>
+                                        
+                                        <!-- Suggestions Dropdown for From -->
+                                        <template if:true={showSearchFromSuggestions}>
+                                            <div class="suggestions-dropdown">
+                                                <template for:each={filteredFromLocations} for:item="location">
+                                                    <div key={location} 
+                                                         class="suggestion-item" 
+                                                         data-location={location}
+                                                         data-field="from"
+                                                         data-form="search"
+                                                         onmousedown={handleSuggestionSelect}>
+                                                        📍 {location}
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    
+                                    <!-- TO LOCATION WITH SUGGESTIONS -->
+                                    <div class="form-group location-autocomplete">
+                                        <label class="form-label">To</label>
+                                        <lightning-input 
+                                            type="text" 
+                                            value={searchForm.to}
+                                            data-field="to"
+                                            onchange={handleSearchInputChange}
+                                            onfocus={handleSearchToFocus}
+                                            onblur={handleSearchToBlur}
+                                            placeholder="Destination"
+                                            class="location-input">
+                                        </lightning-input>
+                                        
+                                        <!-- Suggestions Dropdown for To -->
+                                        <template if:true={showSearchToSuggestions}>
+                                            <div class="suggestions-dropdown">
+                                                <template for:each={filteredToLocations} for:item="location">
+                                                    <div key={location} 
+                                                         class="suggestion-item" 
+                                                         data-location={location}
+                                                         data-field="to"
+                                                         data-form="search"
+                                                         onmousedown={handleSuggestionSelect}>
+                                                        📍 {location}
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                                
+                                <div class="search-options">
+                                    <div class="form-group">
+                                        <label class="form-label">Travel Date</label>
+                                        <lightning-input 
+                                            type="date" 
+                                            value={searchForm.date}
+                                            data-field="date"
+                                            onchange={handleSearchInputChange}
+                                            class="form-input">
+                                        </lightning-input>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Passengers</label>
+                                        <lightning-combobox
+                                            value={searchForm.passengers}
+                                            data-field="passengers"
+                                            onchange={handleSearchInputChange}
+                                            options={passengerOptions}
+                                            class="form-input">
+                                        </lightning-combobox>
+                                    </div>
+                                </div>
+                                
+                                <lightning-button 
+                                    label="Search Rides" 
+                                    onclick={handleSearchRides}
+                                    class="btn-search"
+                                    disabled={isLoading}>
+                                </lightning-button>
+                            </div>
+                            
+                            <!-- Search Results -->
+                            <template if:true={showSearchResults}>
+                                <div class="search-results">
+                                    <h3>Available Rides ({searchResults.length})</h3>
+                                    
+                                    <template for:each={searchResults} for:item="ride">
+                                        <div key={ride.Id} class="ride-card">
+                                            <div class="ride-header">
+                                                <div class="driver-info">
+                                                    <div class="driver-avatar">
+                                                        {ride.Publisher__r.Name}
+                                                    </div>
+                                                    <div class="driver-details">
+                                                        <h4>{ride.Publisher__r.Name}</h4>
+                                                        <span class="driver-phone">{ride.Publisher__r.Phone}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="ride-details">
+                                                <div class="route-info">
+                                                    <div class="route-path">
+                                                        <span class="from-location">{ride.From_Location__c}</span>
+                                                        <span class="route-arrow">→</span>
+                                                        <span class="to-location">{ride.To_Location__c}</span>
+                                                    </div>
+                                                    <!-- <div class="departure-time">
+                                                        {ride.Departure_DateTime__c}
+                                                    </div> -->
+                                                    <lightning-formatted-date-time value={ride.Departure_DateTime__c} year="numeric" month="2-digit" day="2-digit"
+                                                        hour="2-digit" minute="2-digit" class="departure-time">
+                                                    </lightning-formatted-date-time>
+                                                </div>
+                                                
+                                                <div class="ride-meta">
+                                                    <div class="meta-item">
+                                                        <span class="meta-label">Vehicle:</span>
+                                                        <span class="meta-value">{ride.Vehicle_Type__c}</span>
+                                                    </div>
+                                                    <div class="meta-item">
+                                                        <span class="meta-label">Seats:</span>
+                                                        <span class="meta-value">{ride.Available_Seats__c} available</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <template if:true={ride.Notes__c}>
+                                                    <div class="ride-notes">
+                                                        <span class="notes-label">Notes:</span>
+                                                        <span class="notes-text">{ride.Notes__c}</span>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                            
+                                            <div class="ride-actions">
+                                                <div class="price-info">
+                                                    <span class="price">₹{ride.Price_Per_Seat__c}</span>
+                                                    <span class="price-label">per seat</span>
+                                                </div>
+                                                <lightning-button 
+                                                    label="Book Now" 
+                                                    onclick={handleBookRide}
+                                                    data-rideid={ride.Id}
+                                                    class="btn-book">
+                                                </lightning-button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                            
+                            <template if:true={showNoResults}>
+                                <div class="no-results">
+                                    <div class="no-results-icon">🔍</div>
+                                    <h3>No rides found</h3>
+                                    <p>Try adjusting your search criteria or check back later.</p>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+
+                    <!-- PUBLISH TAB -->
+                    <template if:true={showPublishTab}>
+                        <div class="publish-content">
+                            <div class="publish-header">
+                                <h2>Publish Your Ride</h2>
+                                <p>Share your journey and earn money</p>
+                            </div>
+                            
+                            <div class="publish-form">
+                                <div class="location-inputs">
+                                    <!-- FROM LOCATION WITH SUGGESTIONS -->
+                                    <div class="form-group location-autocomplete">
+                                        <label class="form-label required">From</label>
+                                        <lightning-input 
+                                            type="text" 
+                                            value={publishForm.from}
+                                            data-field="from"
+                                            onchange={handlePublishInputChange}
+                                            onfocus={handlePublishFromFocus}
+                                            onblur={handlePublishFromBlur}
+                                            placeholder="Starting location"
+                                            class="location-input"
+                                            required>
+                                        </lightning-input>
+                                        
+                                        <!-- Suggestions Dropdown for From -->
+                                        <template if:true={showPublishFromSuggestions}>
+                                            <div class="suggestions-dropdown">
+                                                <template for:each={filteredFromLocations} for:item="location">
+                                                    <div key={location} 
+                                                         class="suggestion-item" 
+                                                         data-location={location}
+                                                         data-field="from"
+                                                         data-form="publish"
+                                                         onmousedown={handleSuggestionSelect}>
+                                                        📍 {location}
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    
+                                    <!-- TO LOCATION WITH SUGGESTIONS -->
+                                    <div class="form-group location-autocomplete">
+                                        <label class="form-label required">To</label>
+                                        <lightning-input 
+                                            type="text" 
+                                            value={publishForm.to}
+                                            data-field="to"
+                                            onchange={handlePublishInputChange}
+                                            onfocus={handlePublishToFocus}
+                                            onblur={handlePublishToBlur}
+                                            placeholder="Destination"
+                                            class="location-input"
+                                            required>
+                                        </lightning-input>
+                                        
+                                        <!-- Suggestions Dropdown for To -->
+                                        <template if:true={showPublishToSuggestions}>
+                                            <div class="suggestions-dropdown">
+                                                <template for:each={filteredToLocations} for:item="location">
+                                                    <div key={location} 
+                                                         class="suggestion-item" 
+                                                         data-location={location}
+                                                         data-field="to"
+                                                         data-form="publish"
+                                                         onmousedown={handleSuggestionSelect}>
+                                                        📍 {location}
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                                
+                                <div class="datetime-inputs">
+                                    <div class="form-group">
+                                        <label class="form-label required">Date</label>
+                                        <lightning-input 
+                                            type="date" 
+                                            value={publishForm.date}
+                                            data-field="date"
+                                            onchange={handlePublishInputChange}
+                                            class="form-input"
+                                            required>
+                                        </lightning-input>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label required">Time</label>
+                                        <lightning-input 
+                                            type="time" 
+                                            value={publishForm.time}
+                                            data-field="time"
+                                            onchange={handlePublishInputChange}
+                                            class="form-input"
+                                            required>
+                                        </lightning-input>
+                                    </div>
+                                </div>
+                                
+                                <div class="ride-details-inputs">
+                                    <div class="form-group">
+                                        <label class="form-label required">Available Seats</label>
+                                        <lightning-input 
+                                            type="number" 
+                                            value={publishForm.seats}
+                                            data-field="seats"
+                                            onchange={handlePublishInputChange}
+                                            min="1"
+                                            max="8"
+                                            class="form-input"
+                                            required>
+                                        </lightning-input>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label required">Price per Seat (₹)</label>
+                                        <lightning-input 
+                                            type="number" 
+                                            value={publishForm.price}
+                                            data-field="price"
+                                            onchange={handlePublishInputChange}
+                                            min="1"
+                                            class="form-input"
+                                            placeholder="1000"
+                                            required>
+                                        </lightning-input>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label required">Vehicle Type</label>
+                                    <lightning-combobox
+                                        value={publishForm.vehicleType}
+                                        data-field="vehicleType"
+                                        onchange={handlePublishInputChange}
+                                        options={vehicleOptions}
+                                        class="form-input"
+                                        placeholder="Select vehicle type"
+                                        required>
+                                    </lightning-combobox>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Additional Notes</label>
+                                    <lightning-textarea
+                                        value={publishForm.notes}
+                                        data-field="notes"
+                                        onchange={handlePublishInputChange}
+                                        placeholder="Any specific instructions for passengers..."
+                                        class="form-input"
+                                        rows="3">
+                                    </lightning-textarea>
+                                </div>
+                                
+                                <lightning-button 
+                                    label="Publish Ride" 
+                                    onclick={handlePublishRide}
+                                    class="btn-publish"
+                                    disabled={isLoading}>
+                                </lightning-button>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- YOUR RIDES TAB -->
+                    <template if:true={showRidesTab}>
+                        <div class="rides-content">
+                            <div class="rides-header">
+                                <h2>Your Rides</h2>
+                                <p>Manage your bookings and published rides</p>
+                            </div>
+                            
+                            <div class="rides-tabs">
+                                <div class={bookingsTabClass} onclick={handleRideSubTabClick} data-subtab="bookings">Your Bookings</div>
+                                <div class={publishedTabClass} onclick={handleRideSubTabClick} data-subtab="published">Published Rides</div>
+                            </div>
+                            
+                            <template if:true={showBookingsSection}>
+                            <div class="bookings-section">
+                                <template if:true={userBookings.length}>
+                                    <template for:each={userBookings} for:item="booking">
+                                        <div key={booking.Id} class="booking-card clickable-card" data-bookingid={booking.Id} onclick={handleBookingClick}>
+                                            <div class="booking-status">
+                                                <span class="status-badge confirmed">{booking.Status__c}</span>
+                                            </div>
+                                            <div class="booking-details">
+                                                <div class="route-info">
+                                                    <span class="route">{booking.Ride__r.From_Location__c} → {booking.Ride__r.To_Location__c}</span>
+                                                    <span class="departure-time">{booking.Ride__r.Departure_DateTime__c}</span>
+                                                </div>
+                                                <div class="driver-info">
+                                                    <span class="driver-name">Driver: {booking.Ride__r.Publisher__r.Name}</span>
+                                                    <span class="driver-phone">{booking.Ride__r.Publisher__r.Phone}</span>
+                                                </div>
+                                                <div class="booking-meta">
+                                                    <span class="seats-booked">Seats: {booking.Seats_Booked__c}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </template>
+                                
+                                <template if:false={userBookings.length}>
+                                    <div class="no-results">
+                                        <div class="no-results-icon">🎫</div>
+                                        <h3>No bookings yet</h3>
+                                        <p>Book your first ride to get started!</p>
+                                    </div>
+                                </template>
+                            </div>
+                            </template>
+                            
+                            <template if:true={showPublishedSection}>
+                            <div class="published-rides-section">
+                                <template if:true={userRides.length}>
+                                    <template for:each={userRides} for:item="ride">
+                                        <div key={ride.Id} class="published-ride-card clickable-card" data-rideid={ride.Id} onclick={handleRideClick}>
+                                            <div class="ride-status">
+                                                <span class="status-badge active">{ride.Status__c}</span>
+                                            </div>
+                                            <div class="ride-details">
+                                                <div class="route-info">
+                                                    <span class="route">{ride.From_Location__c} → {ride.To_Location__c}</span>
+                                                    <span class="departure-time">{ride.Departure_DateTime__c}</span>
+                                                </div>
+                                                <div class="ride-meta">
+                                                    <span class="seats-available">Seats: {ride.Available_Seats__c} available</span>
+                                                    <span class="price">₹{ride.Price_Per_Seat__c} per seat</span>
+                                                </div>
+                                                <template if:true={ride.Bookings__r}>
+                                                    <div class="bookings-count">
+                                                        <span class="bookings-label">Bookings: {ride.Bookings__r.length}</span>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </template>
+                                
+                                <template if:false={userRides.length}>
+                                    <div class="no-results">
+                                        <div class="no-results-icon">🚗</div>
+                                        <h3>No published rides</h3>
+                                        <p>Publish your first ride to start earning!</p>
+                                    </div>
+                                </template>
+                            </div>
+                            </template>
+                        </div>
+                    </template>
+
+                    <!-- PROFILE TAB -->
+                    <template if:true={showProfileTab}>
+                        <div class="profile-content">
+                            <div class="profile-header">
+                                <div class="profile-avatar-container">
+                                    <template if:true={profilePictureUrl}>
+                                        <img src={profilePictureUrl} alt="Profile Picture" class="profile-picture-img">
+                                        <div class="profile-picture-delete" onclick={handleDeleteProfilePicture} title="Delete Profile Picture">
+                                            <svg class="delete-icon" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                                            </svg>
+                                        </div>
+                                    </template>
+                                    <template if:false={profilePictureUrl}>
+                                        <div class="profile-avatar">
+                                            {userInitials}
+                                        </div>
+                                    </template>
+                                    <label class="profile-picture-upload" title="Upload Profile Picture">
+                                        <input 
+                                            type="file" 
+                                            accept="image/png,image/jpeg,image/jpg,image/gif"
+                                            onchange={handleProfilePictureUpload}
+                                            class="hidden-file-input">
+                                        <svg class="upload-icon" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                                            <circle cx="9" cy="9" r="1.5"/>
+                                        </svg>
+                                    </label>
+                                </div>
+                                <div class="profile-info">
+                                    <h2>{currentUser.Name}</h2>
+                                    <p>{currentUser.Email__c}</p>
+                                    <p>{currentUser.Phone}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="profile-stats">
+                                <div class="stat-card">
+                                    <div class="stat-number">{userBookings.length}</div>
+                                    <div class="stat-label">Trips Taken</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number">{userRides.length}</div>
+                                    <div class="stat-label">Rides Published</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number">4.8</div>
+                                    <div class="stat-label">Rating</div>
+                                </div>
+                            </div>
+                            
+                            <div class="profile-menu">
+                                <div class="menu-item">
+                                    <span class="menu-icon">👤</span>
+                                    <span class="menu-label">Edit Profile</span>
+                                    <span class="menu-arrow">→</span>
+                                </div>
+                                <div class="menu-item">
+                                    <span class="menu-icon">💳</span>
+                                    <span class="menu-label">Payment Methods</span>
+                                    <span class="menu-arrow">→</span>
+                                </div>
+                                <div class="menu-item">
+                                    <span class="menu-icon">⭐</span>
+                                    <span class="menu-label">Reviews & Ratings</span>
+                                    <span class="menu-arrow">→</span>
+                                </div>
+                                <div class="menu-item">
+                                    <span class="menu-icon">📱</span>
+                                    <span class="menu-label">Notifications</span>
+                                    <span class="menu-arrow">→</span>
+                                </div>
+                                <div class="menu-item">
+                                    <span class="menu-icon">❓</span>
+                                    <span class="menu-label">Help & Support</span>
+                                    <span class="menu-arrow">→</span>
+                                </div>
+                                <div class="menu-item logout-item" onclick={handleLogout}>
+                                    <span class="menu-icon">🚪</span>
+                                    <span class="menu-label">Logout</span>
+                                    <span class="menu-arrow">→</span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+
+        <!-- BOOKING DETAILS MODAL -->
+        <template if:true={showBookingModal}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" onclick={closeBookingModal}>
+                            <lightning-icon icon-name="utility:close" alternative-text="close" size="small"></lightning-icon>
+                        </button>
+                        <h2 class="slds-modal__title slds-hyphenate">Booking Details</h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <template if:true={selectedBooking}>
+                            <div class="modal-section">
+                                <h3 class="section-title">Route Information</h3>
+                                <div class="info-row">
+                                    <span class="info-label">From:</span>
+                                    <span class="info-value">{selectedBooking.Ride__r.From_Location__c}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">To:</span>
+                                    <span class="info-value">{selectedBooking.Ride__r.To_Location__c}</span>
+                                </div>
+                            </div>
+
+                            <div class="modal-section">
+                                <h3 class="section-title">Travel Details</h3>
+                                <div class="form-group">
+                                    <label class="form-label">Date</label>
+                                    <lightning-input 
+                                        type="date" 
+                                        value={editBookingForm.date}
+                                        data-field="date"
+                                        onchange={handleBookingEditChange}
+                                        class="form-input">
+                                    </lightning-input>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Time</label>
+                                    <lightning-input 
+                                        type="time" 
+                                        value={editBookingForm.time}
+                                        data-field="time"
+                                        onchange={handleBookingEditChange}
+                                        class="form-input">
+                                    </lightning-input>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Seats Booked</label>
+                                    <lightning-input 
+                                        type="number" 
+                                        value={editBookingForm.seatsBooked}
+                                        data-field="seatsBooked"
+                                        onchange={handleBookingEditChange}
+                                        min="1"
+                                        class="form-input">
+                                    </lightning-input>
+                                </div>
+                            </div>
+
+                            <div class="modal-section">
+                                <h3 class="section-title">Driver Information</h3>
+                                <div class="info-row">
+                                    <span class="info-label">Name:</span>
+                                    <span class="info-value">{selectedBooking.Ride__r.Publisher__r.Name}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Phone:</span>
+                                    <span class="info-value">{selectedBooking.Ride__r.Publisher__r.Phone}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Vehicle:</span>
+                                    <span class="info-value">{selectedBooking.Ride__r.Vehicle_Type__c}</span>
+                                </div>
+                            </div>
+
+                            <div class="modal-section">
+                                <div class="info-row">
+                                    <span class="info-label">Status:</span>
+                                    <span class="status-badge confirmed">{selectedBooking.Status__c}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Booked On:</span>
+                                    <span class="info-value">{selectedBooking.Booking_DateTime__c}</span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <lightning-button 
+                            variant="destructive" 
+                            label="Cancel Booking" 
+                            onclick={handleCancelBooking}
+                            class="slds-m-right_small">
+                        </lightning-button>
+                        <lightning-button 
+                            variant="brand" 
+                            label="Save Changes" 
+                            onclick={handleSaveBooking}>
+                        </lightning-button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+
+        <!-- RIDE DETAILS MODAL -->
+        <template if:true={showRideModal}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" onclick={closeRideModal}>
+                            <lightning-icon icon-name="utility:close" alternative-text="close" size="small"></lightning-icon>
+                        </button>
+                        <h2 class="slds-modal__title slds-hyphenate">Published Ride Details</h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <template if:true={selectedRide}>
+                            <div class="modal-section">
+                                <h3 class="section-title">Route Information</h3>
+                                <div class="info-row">
+                                    <span class="info-label">From:</span>
+                                    <span class="info-value">{selectedRide.From_Location__c}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">To:</span>
+                                    <span class="info-value">{selectedRide.To_Location__c}</span>
+                                </div>
+                            </div>
+
+                            <div class="modal-section">
+                                <h3 class="section-title">Ride Details</h3>
+                                <div class="form-group">
+                                    <label class="form-label">Date</label>
+                                    <lightning-input 
+                                        type="date" 
+                                        value={editRideForm.date}
+                                        data-field="date"
+                                        onchange={handleRideEditChange}
+                                        class="form-input">
+                                    </lightning-input>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Time</label>
+                                    <lightning-input 
+                                        type="time" 
+                                        value={editRideForm.time}
+                                        data-field="time"
+                                        onchange={handleRideEditChange}
+                                        class="form-input">
+                                    </lightning-input>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Available Seats</label>
+                                    <lightning-input 
+                                        type="number" 
+                                        value={editRideForm.availableSeats}
+                                        data-field="availableSeats"
+                                        onchange={handleRideEditChange}
+                                        min="0"
+                                        class="form-input">
+                                    </lightning-input>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Price per Seat (₹)</label>
+                                    <lightning-input 
+                                        type="number" 
+                                        value={editRideForm.pricePerSeat}
+                                        data-field="pricePerSeat"
+                                        onchange={handleRideEditChange}
+                                        min="1"
+                                        class="form-input">
+                                    </lightning-input>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Vehicle Type</label>
+                                    <lightning-combobox
+                                        value={editRideForm.vehicleType}
+                                        data-field="vehicleType"
+                                        onchange={handleRideEditChange}
+                                        options={vehicleOptions}
+                                        class="form-input">
+                                    </lightning-combobox>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Notes</label>
+                                    <lightning-textarea
+                                        value={editRideForm.notes}
+                                        data-field="notes"
+                                        onchange={handleRideEditChange}
+                                        class="form-input"
+                                        rows="3">
+                                    </lightning-textarea>
+                                </div>
+                            </div>
+
+                            <div class="modal-section">
+                                <div class="info-row">
+                                    <span class="info-label">Status:</span>
+                                    <span class="status-badge active">{selectedRide.Status__c}</span>
+                                </div>
+                            </div>
+
+                            <template if:true={ridePassengers.length}>
+                                <div class="modal-section">
+                                    <h3 class="section-title">Passengers ({ridePassengers.length})</h3>
+                                    <div class="passengers-list">
+                                        <template for:each={ridePassengers} for:item="passenger">
+                                            <div key={passenger.Id} class="passenger-item">
+                                                <div class="passenger-avatar">{passenger.initials}</div>
+                                                <div class="passenger-info">
+                                                    <div class="passenger-name">{passenger.Passenger__r.Name}</div>
+                                                    <div class="passenger-phone">{passenger.Passenger__r.Phone}</div>
+                                                    <div class="passenger-seats">Seats: {passenger.Seats_Booked__c}</div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </template>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <lightning-button 
+                            variant="destructive" 
+                            label="Delete Ride" 
+                            onclick={handleDeleteRide}
+                            class="slds-m-right_small">
+                        </lightning-button>
+                        <lightning-button 
+                            variant="brand" 
+                            label="Save Changes" 
+                            onclick={handleSaveRide}>
+                        </lightning-button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+    </div>
+</template>
